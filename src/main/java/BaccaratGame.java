@@ -32,22 +32,6 @@ public class BaccaratGame implements Runnable {
                     controller.updateListView(clientInfo);
                     // TODO: Remaining game logic here, to update anything, update clientInfo
 
-
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            System.out.println("... Gonna run now ...");
-                            clientInfo.setStatus(false);
-                            controller.updateListView(clientInfo);
-                        }
-                    });
-
-
                 }
             });
 
