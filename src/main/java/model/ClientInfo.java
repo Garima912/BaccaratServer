@@ -20,7 +20,7 @@ public class ClientInfo{
 
     public ClientInfo(Packet packet) {
 
-        this.name.setText(packet.getName());
+        this.name.setText(packet.getPlayerDetails().getPlayerName());
         this.address.setText(packet.getIpAddress());
         HBox nameLine= new HBox(new Label("Name: "));
         nameLine.setSpacing(100);

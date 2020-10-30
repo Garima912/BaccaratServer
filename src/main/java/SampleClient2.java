@@ -18,7 +18,7 @@ public class SampleClient2 {
                 try {
                     ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                     Packet packet = (Packet)in.readObject();
-                    System.out.println("[CLient1: ]"+ packet.getName());
+                    System.out.println("[CLient1: ]"+ packet.getPlayerDetails().getPlayerName());
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
