@@ -1,8 +1,6 @@
-package main.java;
-
 import javafx.application.Platform;
-import main.java.model.ClientInfo;
-import main.java.model.Packet;
+import model.ClientInfo;
+import model.Packet;
 
 import java.io.*;
 import java.net.Socket;

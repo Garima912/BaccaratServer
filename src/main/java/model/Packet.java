@@ -1,7 +1,4 @@
-package main.java.model;
-
-import main.java.Card;
-
+package model;
 import java.io.Serializable;
 import java.util.ArrayList;
 

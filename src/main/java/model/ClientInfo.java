@@ -1,14 +1,12 @@
-/**
+package model; /**
  * This class is the GUI representation of a client.
  * so fields are not primitive types. They're javaFx components
  */
-
-package main.java.model;
-
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import model.Packet;
 
 public class ClientInfo{
     private VBox container = new VBox();

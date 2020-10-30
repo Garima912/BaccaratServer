@@ -1,5 +1,3 @@
-package main.java;
-
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -9,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import main.java.model.ClientInfo;
+import model.ClientInfo;
 
 import java.io.IOException;
 import java.net.ServerSocket;

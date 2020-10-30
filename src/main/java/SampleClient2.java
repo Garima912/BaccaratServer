@@ -1,13 +1,11 @@
-package main.java;
-
-import main.java.model.Packet;
+import model.Packet;
 
 import java.io.*;
 import java.net.Socket;
 
 public class SampleClient2 {
     public static void main(String[] args) throws IOException {
-        Socket socket = new Socket("127.0.0.1", 9090);
+        final Socket socket = new Socket("127.0.0.1", 9090);
         ObjectOutputStream out = new ObjectOutputStream((socket.getOutputStream()));
 
         System.out.println("get remote: "+socket.getLocalSocketAddress().toString());

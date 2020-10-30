@@ -1,4 +1,4 @@
-package main.java;
+package model;
 
 public class Card {
 }
