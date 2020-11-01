@@ -5,6 +5,7 @@ import model.Card;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Random;
 
 public class BaccaratDealer {
 

@@ -57,6 +57,7 @@ public class ClientInfo{
 
         container.setPadding(new Insets(0, 0, 20, 0));
         container.getChildren().addAll(nameLine, addressLine, resultsLine, currentBetLine, winLine, statusLine, currentlyPlayingLine);
+        System.out.println("constructor called ");
         notifyController();
     }
 
@@ -84,6 +85,7 @@ public class ClientInfo{
             resultText = this.result.getText()+", "+resultText;
         }
         this.result.setText(resultText);
+        System.out.println("set result called");
         notifyController();
     }
 
@@ -93,6 +95,7 @@ public class ClientInfo{
 
     public void setCurrentBid(int currentBetText) {
         this.currentBid.setText("$"+String.valueOf(currentBetText));
+        System.out.println("set current bid called");
         notifyController();
     }
 
@@ -107,6 +110,7 @@ public class ClientInfo{
             winText = this.result.getText()+", $"+winText;
         }
         this.result.setText("$"+winText);
+        System.out.println("set wins called");
         notifyController();
     }
 
@@ -123,7 +127,8 @@ public class ClientInfo{
             this.status.setText("Offline");
             this.status.setTextFill(Color.INDIANRED);
         }
-        notifyController();
+        System.out.println("set status called");
+//        notifyController();
     }
 
     public Label getPlaying() {
@@ -132,6 +137,7 @@ public class ClientInfo{
 
     public void setPlaying(String playingText) {
         this.playing.setText(playingText);
+        System.out.println("setPlaying called");
         notifyController();
     }
 

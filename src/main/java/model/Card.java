@@ -3,8 +3,8 @@ package model;
 import java.io.Serializable;
 
 public class Card implements Serializable {
-        String suite;
-        int value;
+    String suite;
+    int value;
 
     public String getSuite() {
         return suite;

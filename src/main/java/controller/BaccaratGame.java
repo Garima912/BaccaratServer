@@ -1,5 +1,6 @@
 package controller;
 
+import controller.ServerHomeController;
 import javafx.application.Platform;
 import model.Card;
 import model.ClientInfo;
@@ -9,8 +10,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class BaccaratGame {
-    // old code
+public class BaccaratGame implements Runnable {
 
     private ArrayList<Card> playerHand;
     private ArrayList<Card> bankerHand;
@@ -25,8 +25,8 @@ public class BaccaratGame {
     private ObjectOutputStream out;
     private ServerHomeController controller;
     ClientInfo clientInfo;
-    Runnable runnable;
     Card playerThirdCard;
+    Packet packet;
 
     public BaccaratGame(Socket clientSocket, ServerHomeController controller) throws IOException {
 
@@ -49,36 +49,7 @@ public class BaccaratGame {
         this.controller = controller;
         in = new ObjectInputStream(this.clientSocket.getInputStream());
         out = new ObjectOutputStream((this.clientSocket.getOutputStream()));
-        starGame();
     }
-
-public void starGame(){
-        runnable = new Runnable() {
-        @Override public void run() {
-
-            System.out.println("[BACCARAT_GAME]: Game started, player -> ");
-            try {
-                Packet packet = (Packet)in.readObject();
-                clientInfo = new ClientInfo(packet, controller);
-                System.out.println(packet.getPlayerDetails().getBidAmount());
-
-                if (packet.getPlayerDetails().getBidAmount() != 0){
-                    System.out.println("user didn't input bid amount yet");
-                }
-
-
-                // read current bet, bet choice
-                // write the gameResult as the winner msg into the packet
-
-
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-
-        }
-    };
-    Platform.runLater(runnable);
-}
 
     public Socket getSocket() {
 
@@ -110,4 +81,33 @@ public void starGame(){
         return currentBet;
     }
 
+    @Override
+    public void run() {
+        System.out.println("[BACCARAT_GAME]: Game started, player -> ");
+        try {
+            while (true){
+                System.out.println("received a packet");
+                // regardless of what button is pressed on client side, update server UI first
+                packet = (Packet) in.readObject();
+                clientInfo = new ClientInfo(packet, controller);
+
+                if (packet.getPlayerDetails().getBidAmount() !=0){      // draw button is pressed by client
+
+                    // TODO: REMOVE hardcode to send hand to client
+                    Card card_1 = new Card("diamond", 3);
+                    Card card_2 = new Card("heart", 4);
+                    ArrayList<Card> cards = new ArrayList<>();
+                    cards.add(card_1); cards.add(card_2);
+                    packet.getPlayerDetails().setPlayerHand(cards);
+                    out.writeObject(packet);
+                    // TODO: end hardcode to send hand to client
+
+                }
+                out.reset();
+            }
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 }

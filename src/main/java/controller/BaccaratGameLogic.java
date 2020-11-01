@@ -62,8 +62,8 @@ public class BaccaratGameLogic  {
 
 
         if(((playerVal < 2 || playerVal == 9) && bankerTotal == 3)|| ((playerVal == 2 || playerVal == 3) && bankerTotal< 5)
-           || ((playerVal == 4 || playerVal == 5) && bankerTotal <6)
-           || ((playerVal == 6 || playerVal == 7) && bankerTotal < 7)) {
+                || ((playerVal == 4 || playerVal == 5) && bankerTotal <6)
+                || ((playerVal == 6 || playerVal == 7) && bankerTotal < 7)) {
             return true;
         }
 
