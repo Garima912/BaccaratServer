@@ -167,11 +167,12 @@ public class ClientInfo{
 
 
     public void notifyController(){
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                controller.updateListView(ClientInfo.this);
-            }
-        });
+        controller.updateListView(this);
+//        Platform.runLater(new Runnable() {
+//            @Override
+//            public void run() {
+//                controller.updateListView(ClientInfo.this);
+//            }
+//        });
     }
 }

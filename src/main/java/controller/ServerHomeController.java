@@ -94,6 +94,8 @@ public class ServerHomeController extends Thread implements EventHandler {
             public void run() {
                 try {
                     int playCount = 0;      // number of rounds being played
+                    // create one output stream to be used in the each game (or round) played by the client
+                    ObjectOutputStream out = new ObjectOutputStream((clientSocket.getOutputStream()));
                     while (true){
                         playCount ++;
                         // start a game for the client, add game to list of games
@@ -106,16 +108,12 @@ public class ServerHomeController extends Thread implements EventHandler {
                             packet.setClientPlaying(playCount);
                             clientInfo.updateClient(packet);
 
-                            // create one output stream to be used in the each game (or round) played by the client
-                            ObjectOutputStream out = new ObjectOutputStream((clientSocket.getOutputStream()));
-
                             BaccaratGame baccaratGame = new BaccaratGame(clientSocket, clientInfo, in, out);
                             baccaratGames.add(baccaratGame);
                             runningThreads.add(this);
                             System.out.println("DONE");
                         }
                         else if (packet.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit
-                            ObjectOutputStream out = new ObjectOutputStream((clientSocket.getOutputStream()));
                             packet.setServerStatus(false);
                             clientInfo.updateClient(packet);
                             out.reset();
@@ -132,8 +130,7 @@ public class ServerHomeController extends Thread implements EventHandler {
     }
 
 
-    public void updateListView(ClientInfo clientInfo){      // first time connecting, add
-        clientsList.getItems().clear();
+    public void updateListView(final ClientInfo clientInfo){      // first time connecting, add
         int position = posInServer(clientInfo);
         if (position == -1){
             System.out.println("First time client: "+ clientInfo.getAddress().getText());
@@ -141,11 +138,13 @@ public class ServerHomeController extends Thread implements EventHandler {
         }
         else{       // update clientInfo at that position
             System.out.println("existing client "+ clientInfo.getAddress().getText());
+            System.out.println("setting item at "+position);
             clientsInfo.set(position, clientInfo);
         }
         // platform.runLater enables syncing. since they're in different threads
         Platform.runLater(new Runnable() {
             @Override public void run() {
+                clientsList.getItems().clear();
                 for (ClientInfo item: clientsInfo){
                     clientsList.getItems().add(item.getContainer());
                 }
@@ -157,14 +156,15 @@ public class ServerHomeController extends Thread implements EventHandler {
 
 
     int posInServer(ClientInfo clientInfo){
-        // TODO: try comparing directly to clientinfo not ipaddress
-        String ipAddress = clientInfo.getAddress().getText();
+        // find clientInfo's position in the arraylist
         for (int i = 0; i< clientsInfo.size(); i++){
-            if (clientsInfo.get(i).getAddress().getText().contains(ipAddress)){
+            if (clientsInfo.get(i).equals(clientInfo)){
                 return i;
             }
         }
         return -1;
+
+
     }
 
     @Override
