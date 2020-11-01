@@ -57,7 +57,6 @@ public class BaccaratGameLogic  {
         }
         int playerVal = playerCard.getValue();
 
-
         if(bankerTotal >= 7){
             return false;
         }
