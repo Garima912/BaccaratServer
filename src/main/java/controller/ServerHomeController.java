@@ -10,8 +10,12 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import model.ClientInfo;
+import model.Packet;
+import util.Util;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -25,8 +29,10 @@ public class ServerHomeController extends Thread implements EventHandler {
     Button powerBtn =  new Button();
     ListView clientsList;
     ServerSocket listener;
+    private ObjectInputStream in;
     ArrayList<ClientInfo> clientData = new ArrayList<>();
     ArrayList<BaccaratGame> baccaratGames = new ArrayList<>();
+    ArrayList<Thread> runningThreads = new ArrayList<>();
 
     static ExecutorService executor = Executors.newFixedThreadPool(10);
     public ServerHomeController(VBox parent, String port) {
@@ -64,14 +70,46 @@ public class ServerHomeController extends Thread implements EventHandler {
                 System.out.println("[SERVER]: Listening for connections...");
                 Socket clientSocket = listener.accept();
                 System.out.println("[SERVER]: Connected to client");
-                BaccaratGame baccaratGame = new BaccaratGame(clientSocket, this);
-                baccaratGames.add(baccaratGame);
-                executor.execute(baccaratGame);
-                System.out.println("DONE");
+
+                // get packet from client send to client info for ui updates
+                in = new ObjectInputStream(clientSocket.getInputStream());
+                Packet packet = (Packet) in.readObject();
+                if (packet.actionRequest.equals(Util.ACTION_REQUEST_CONNECT)){
+                    new ClientInfo(packet, this);
+                    clientPlayPressed(clientSocket).start();
+
+                }
+
+
             }
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public Thread clientPlayPressed(final Socket clientSocket){
+        // a thread that waits for 1 more response from user
+        return new Thread(){
+            @Override
+            public void run() {
+                try {
+                    // start a game for the client, add game to list of games
+                    System.out.println("reading input...");
+                    Packet packet = (Packet) in.readObject();
+                    if (packet.actionRequest.equals(Util.ACTION_REQUEST_PLAY)){
+                        System.out.println("amount trynna bet is "+packet.getPlayerDetails().getBidAmount());
+                        BaccaratGame baccaratGame = new BaccaratGame(clientSocket, in,  ServerHomeController.this);
+                        baccaratGames.add(baccaratGame);
+                        runningThreads.add(this);
+                        System.out.println("DONE");
+                    }
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("done reading input....");
+            }
+        };
+
     }
 
 
@@ -127,6 +165,7 @@ public class ServerHomeController extends Thread implements EventHandler {
                 }
             }
             executor.shutdownNow();
+            Platform.exit();
             System.exit(0);
         }
     }
