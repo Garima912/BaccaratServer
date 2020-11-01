@@ -28,35 +28,40 @@ public class ClientInfo{
         this.address.setText(packet.getIpAddress());
         this.updateClient(packet);
 
-        HBox nameLine= new HBox(new Label("Name: "));
+        final HBox nameLine = new HBox(new Label("Name: "));
         nameLine.setSpacing(100);
         nameLine.getChildren().add(this.name);
 
-        HBox addressLine= new HBox(new Label("IP Address: "));
+        final HBox addressLine= new HBox(new Label("IP Address: "));
         addressLine.setSpacing(100);
         addressLine.getChildren().add(this.address);
 
-        HBox resultsLine = new HBox(new Label("Results: "));
+        final HBox resultsLine = new HBox(new Label("Results: "));
         resultsLine.getChildren().add(this.result);
         resultsLine.setSpacing(100);
 
-        HBox currentBetLine = new HBox(new Label("Current bet: "));
+        final HBox currentBetLine = new HBox(new Label("Current bet: "));
         currentBetLine.getChildren().add(this.currentBid);
 
-        HBox winLine = new HBox(new Label("Wins: "));
+        final HBox winLine = new HBox(new Label("Wins: "));
         winLine.getChildren().add(this.wins);
         winLine.setSpacing(100);
 
-        HBox statusLine = new HBox(new Label("Status: "));
+        final HBox statusLine = new HBox(new Label("Status: "));
         statusLine.getChildren().add(this.status);
         statusLine.setSpacing(100);
 
-        HBox currentlyPlayingLine = new HBox(new Label("Wins: "));
+        final HBox currentlyPlayingLine = new HBox(new Label("Wins: "));
         currentBetLine.getChildren().add(this.playing);
         currentBetLine.setSpacing(100);
 
         container.setPadding(new Insets(0, 0, 20, 0));
-        container.getChildren().addAll(nameLine, addressLine, resultsLine, currentBetLine, winLine, statusLine, currentlyPlayingLine);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                container.getChildren().addAll(nameLine, addressLine, resultsLine, currentBetLine, winLine, statusLine, currentlyPlayingLine);
+            }
+        });
         System.out.println("constructor called ");
         notifyController();
     }
@@ -82,7 +87,7 @@ public class ClientInfo{
         String prev = this.result.getText();
         // don't prefix with comma, the first time
         if (!prev.equals("")){
-            resultText = this.result.getText()+", "+resultText;
+            resultText = this.result.getText()+", "+ resultText;
         }
         this.result.setText(resultText);
         System.out.println("set result called");
