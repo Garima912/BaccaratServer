@@ -1,5 +1,4 @@
 package model;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -9,15 +8,27 @@ public class Packet implements Serializable {
     private int portNum;
     private PlayerDetails playerDetails;
     private String winnerMsg;
-    private boolean serverStatus;
-
+    private boolean serverStatus;       // if server is down or not
+    private boolean isClientPlaying;
+    public String actionRequest;        // the action the client is requesting from server
 
     public Packet(String ipAddress, int portNum, String name) {
         this.ipAddress = ipAddress;
         this.portNum = portNum;
         this.playerDetails = new PlayerDetails(name);
         this.serverStatus = true;
+        this.isClientPlaying = true;
     }
+
+
+    public boolean isClientPlaying() {
+        return isClientPlaying;
+    }
+
+    public void setClientPlaying(boolean clientPlaying) {
+        isClientPlaying = clientPlaying;
+    }
+
 
     public boolean isServerStatus() {
         return serverStatus;
@@ -62,6 +73,15 @@ public class Packet implements Serializable {
         private String betChoice;
         private boolean isOnline;
 
+        public double getTotalWinnings() {
+            return totalWinnings;
+        }
+
+        public void setTotalWinnings(double totalWinnings) {
+            this.totalWinnings = totalWinnings;
+        }
+
+        private double totalWinnings;
 
         public PlayerDetails(String playerName) {
             this.playerName = playerName;

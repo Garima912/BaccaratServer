@@ -56,6 +56,7 @@ public class ClientInfo{
         currentBetLine.setSpacing(100);
 
         container.setPadding(new Insets(0, 0, 20, 0));
+        // TODO: put next line in runlater
         container.getChildren().addAll(nameLine, addressLine, resultsLine, currentBetLine, winLine, statusLine, currentlyPlayingLine);
         System.out.println("constructor called ");
         notifyController();

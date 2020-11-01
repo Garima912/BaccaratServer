@@ -49,7 +49,14 @@ public class BaccaratGameLogic  {
     public static boolean evaluateBankerDraw(ArrayList<Card> hand, Card playerCard){
 
         int bankerTotal = handTotal(hand);
-        if(playerCard == null && bankerTotal < 6){return true;}
+
+        if (playerCard == null){
+            if (bankerTotal < 6){
+                return true;
+            }
+            else return false;
+        }
+
         int playerVal = playerCard.getValue();
 
 
