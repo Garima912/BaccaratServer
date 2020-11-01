@@ -51,6 +51,7 @@ public class BaccaratGame {
     // this function checks if the user wins or loses and returns the total winning  accordingly
     public double evaluateWinnings(){
         String winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
+        packet.setWinnerMsg(winner);
 
         if(winner.equals(clientBetChoice)){
 

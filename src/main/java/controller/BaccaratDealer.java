@@ -15,6 +15,7 @@ public class BaccaratDealer {
 
     public BaccaratDealer() {
         deck =  new ArrayList<>();
+        deck.clear();
         generateDeck();
     }
 
