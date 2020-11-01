@@ -4,7 +4,7 @@ package model;
  * This class is the GUI representation of a client.
  * so fields are not primitive types. They're javaFx components
  */
-import Controller.ServerHomeController;
+import controller.ServerHomeController;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;

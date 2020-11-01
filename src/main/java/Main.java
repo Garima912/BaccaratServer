@@ -1,4 +1,4 @@
-import Controller.ServerHomeController;
+import controller.ServerHomeController;
 import javafx.application.Application;
 import javafx.event.Event;
 import javafx.event.EventHandler;
