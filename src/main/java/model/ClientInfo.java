@@ -1,27 +1,33 @@
-package model; /**
+package model;
+
+/**
  * This class is the GUI representation of a client.
  * so fields are not primitive types. They're javaFx components
  */
+import controller.ServerHomeController;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import model.Packet;
 
 public class ClientInfo{
     private VBox container = new VBox();
     private Label address = new Label("");
     private Label name = new Label("");
     private Label result = new Label("");
-    private Label currentBet = new Label();
+    private Label currentBid = new Label();
     private Label wins = new Label("");
     private Label status = new Label("");
     private Label playing = new Label("");
+    private ServerHomeController controller;
 
-    public ClientInfo(Packet packet) {
-
+    public ClientInfo(Packet packet, ServerHomeController controller) {
+        this.controller = controller;
         this.name.setText(packet.getPlayerDetails().getPlayerName());
         this.address.setText(packet.getIpAddress());
+        this.updateClient(packet);
+
         HBox nameLine= new HBox(new Label("Name: "));
         nameLine.setSpacing(100);
         nameLine.getChildren().add(this.name);
@@ -35,7 +41,7 @@ public class ClientInfo{
         resultsLine.setSpacing(100);
 
         HBox currentBetLine = new HBox(new Label("Current bet: "));
-        currentBetLine.getChildren().add(this.currentBet);
+        currentBetLine.getChildren().add(this.currentBid);
 
         HBox winLine = new HBox(new Label("Wins: "));
         winLine.getChildren().add(this.wins);
@@ -49,12 +55,16 @@ public class ClientInfo{
         currentBetLine.getChildren().add(this.playing);
         currentBetLine.setSpacing(100);
 
-        setStatus(true);
         container.setPadding(new Insets(0, 0, 20, 0));
         container.getChildren().addAll(nameLine, addressLine, resultsLine, currentBetLine, winLine, statusLine, currentlyPlayingLine);
+        System.out.println("constructor called ");
+        notifyController();
     }
 
-
+    public void updateClient(Packet packet){
+        setCurrentBid(packet.getPlayerDetails().getBidAmount());
+        setStatus(packet.getPlayerDetails().isOnline());
+    }
 
     public Label getName() {
         return name;
@@ -75,16 +85,18 @@ public class ClientInfo{
             resultText = this.result.getText()+", "+resultText;
         }
         this.result.setText(resultText);
-
-
+        System.out.println("set result called");
+        notifyController();
     }
 
-    public Label getCurrentBet() {
-        return currentBet;
+    public Label getCurrentBid() {
+        return currentBid;
     }
 
-    public void setCurrentBet(String currentBetText) {
-        this.currentBet.setText("$"+currentBetText);
+    public void setCurrentBid(int currentBetText) {
+        this.currentBid.setText("$"+String.valueOf(currentBetText));
+        System.out.println("set current bid called");
+        notifyController();
     }
 
     public Label getWins() {
@@ -98,6 +110,8 @@ public class ClientInfo{
             winText = this.result.getText()+", $"+winText;
         }
         this.result.setText("$"+winText);
+        System.out.println("set wins called");
+        notifyController();
     }
 
     public Label getStatus() {
@@ -113,6 +127,8 @@ public class ClientInfo{
             this.status.setText("Offline");
             this.status.setTextFill(Color.INDIANRED);
         }
+        System.out.println("set status called");
+//        notifyController();
     }
 
     public Label getPlaying() {
@@ -121,9 +137,21 @@ public class ClientInfo{
 
     public void setPlaying(String playingText) {
         this.playing.setText(playingText);
+        System.out.println("setPlaying called");
+        notifyController();
     }
 
     public VBox getContainer() {
         return container;
+    }
+
+
+    public void notifyController(){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                controller.updateListView(ClientInfo.this);
+            }
+        });
     }
 }

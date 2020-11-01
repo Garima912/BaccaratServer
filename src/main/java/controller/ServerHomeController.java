@@ -1,3 +1,5 @@
+package controller;
+
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -77,11 +79,11 @@ public class ServerHomeController extends Thread implements EventHandler {
         clientsList.getItems().clear();
         int position = posInServer(clientInfo);
         if (position == -1){
-            System.out.println("First time client: "+ clientInfo.getAddress());
+            System.out.println("First time client: "+ clientInfo.getAddress().getText());
             clientData.add(clientInfo);
         }
         else{       // update clientInfo at that position
-            System.out.println("existing client "+ clientInfo.getAddress());
+            System.out.println("existing client "+ clientInfo.getAddress().getText());
             clientData.set(position, clientInfo);
         }
         // platform.runLater enables syncing. since they're in different threads
@@ -98,9 +100,9 @@ public class ServerHomeController extends Thread implements EventHandler {
 
 
     int posInServer(ClientInfo clientInfo){
-        String ipAddress = clientInfo.getAddress().toString();
+        String ipAddress = clientInfo.getAddress().getText();
         for (int i=0; i<clientData.size(); i++){
-            if (clientData.get(i).getAddress().toString().contains(ipAddress)){
+            if (clientData.get(i).getAddress().getText().contains(ipAddress)){
                 return i;
             }
         }
@@ -117,7 +119,15 @@ public class ServerHomeController extends Thread implements EventHandler {
                     e.printStackTrace();
                 }
             }
-            Platform.exit();
+            for (BaccaratGame game: baccaratGames){
+                try {
+                    game.closeConnection();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            executor.shutdownNow();
+            System.exit(0);
         }
     }
 }
