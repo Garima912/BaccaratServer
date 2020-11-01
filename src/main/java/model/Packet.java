@@ -9,7 +9,7 @@ public class Packet implements Serializable {
     private PlayerDetails playerDetails;
     private String winnerMsg;
     private boolean serverStatus;       // if server is down or not
-    private boolean isClientPlaying;
+    private int clientPlaying;
     public String actionRequest;        // the action the client is requesting from server
 
     public Packet(String ipAddress, int portNum, String name) {
@@ -17,16 +17,16 @@ public class Packet implements Serializable {
         this.portNum = portNum;
         this.playerDetails = new PlayerDetails(name);
         this.serverStatus = true;
-        this.isClientPlaying = true;
+        this.clientPlaying = 0;     // the number of games client has played
     }
 
 
-    public boolean isClientPlaying() {
-        return isClientPlaying;
+    public int getClientPlaying() {
+        return clientPlaying;
     }
 
-    public void setClientPlaying(boolean clientPlaying) {
-        isClientPlaying = clientPlaying;
+    public void setClientPlaying(int clientPlaying) {
+        this.clientPlaying = clientPlaying;
     }
 
 

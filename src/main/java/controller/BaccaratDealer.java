@@ -30,6 +30,7 @@ public class BaccaratDealer {
 
             }
         }
+        System.out.println("Generated a new deck");
 
     }
     public ArrayList<Card> dealHand(){
