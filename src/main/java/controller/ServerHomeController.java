@@ -30,7 +30,7 @@ public class ServerHomeController extends Thread implements EventHandler {
     ListView clientsList;
     ServerSocket listener;
     private ObjectInputStream in;
-    ArrayList<ClientInfo> clientData = new ArrayList<>();
+    ArrayList<ClientInfo> clientsInfo = new ArrayList<>();
     ArrayList<BaccaratGame> baccaratGames = new ArrayList<>();
     ArrayList<Thread> runningThreads = new ArrayList<>();
 
@@ -52,7 +52,7 @@ public class ServerHomeController extends Thread implements EventHandler {
 
         HBox clientCountBox = new HBox();
         clientCountBox.getChildren().add(new Label("Number of clients: "));
-        clientCount.setText(String.valueOf(clientData.size()));
+        clientCount.setText(String.valueOf(clientsInfo.size()));
         clientCountBox.getChildren().add(clientCount);
 
         powerBtn.setText("Turn off Server");
@@ -75,8 +75,8 @@ public class ServerHomeController extends Thread implements EventHandler {
                 in = new ObjectInputStream(clientSocket.getInputStream());
                 Packet packet = (Packet) in.readObject();
                 if (packet.actionRequest.equals(Util.ACTION_REQUEST_CONNECT)){
-                    new ClientInfo(packet, this);
-                    clientPlayPressed(clientSocket).start();
+                   ClientInfo clientInfo =  new ClientInfo(packet, this);
+                    clientPlayPressed(clientSocket, clientInfo).start();
 
                 }
 
@@ -87,21 +87,40 @@ public class ServerHomeController extends Thread implements EventHandler {
         }
     }
 
-    public Thread clientPlayPressed(final Socket clientSocket){
+    public Thread clientPlayPressed(final Socket clientSocket, final ClientInfo clientInfo){
         // a thread that waits for 1 more response from user
         return new Thread(){
             @Override
             public void run() {
                 try {
-                    // start a game for the client, add game to list of games
-                    System.out.println("reading input...");
-                    Packet packet = (Packet) in.readObject();
-                    if (packet.actionRequest.equals(Util.ACTION_REQUEST_PLAY)){
-                        System.out.println("amount trynna bet is "+packet.getPlayerDetails().getBidAmount());
-                        BaccaratGame baccaratGame = new BaccaratGame(clientSocket, in,  ServerHomeController.this);
-                        baccaratGames.add(baccaratGame);
-                        runningThreads.add(this);
-                        System.out.println("DONE");
+                    int playCount = 0;      // number of rounds being played
+                    while (true){
+                        playCount ++;
+                        // start a game for the client, add game to list of games
+                        System.out.println("reading input...");
+                        Packet packet = (Packet) in.readObject();
+                        if (packet.actionRequest.equals(Util.ACTION_REQUEST_PLAY)){
+                            System.out.println("amount trynna bet is "+packet.getPlayerDetails().getBidAmount());
+
+                            // update list view, client is now playing
+                            packet.setClientPlaying(playCount);
+                            clientInfo.updateClient(packet);
+
+                            // create one output stream to be used in the each game (or round) played by the client
+                            ObjectOutputStream out = new ObjectOutputStream((clientSocket.getOutputStream()));
+
+                            BaccaratGame baccaratGame = new BaccaratGame(clientSocket, clientInfo, in, out);
+                            baccaratGames.add(baccaratGame);
+                            runningThreads.add(this);
+                            System.out.println("DONE");
+                        }
+                        else if (packet.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit
+                            ObjectOutputStream out = new ObjectOutputStream((clientSocket.getOutputStream()));
+                            packet.setServerStatus(false);
+                            clientInfo.updateClient(packet);
+                            out.reset();
+                            out.writeObject(packet);    // send packet back as is. With actionRequest being the same
+                        }
                     }
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
@@ -118,19 +137,19 @@ public class ServerHomeController extends Thread implements EventHandler {
         int position = posInServer(clientInfo);
         if (position == -1){
             System.out.println("First time client: "+ clientInfo.getAddress().getText());
-            clientData.add(clientInfo);
+            clientsInfo.add(clientInfo);
         }
         else{       // update clientInfo at that position
             System.out.println("existing client "+ clientInfo.getAddress().getText());
-            clientData.set(position, clientInfo);
+            clientsInfo.set(position, clientInfo);
         }
         // platform.runLater enables syncing. since they're in different threads
         Platform.runLater(new Runnable() {
             @Override public void run() {
-                for (ClientInfo item: clientData){
+                for (ClientInfo item: clientsInfo){
                     clientsList.getItems().add(item.getContainer());
                 }
-                clientCount.setText(String.valueOf(clientData.size()));
+                clientCount.setText(String.valueOf(clientsInfo.size()));
             }
         });
     }
@@ -138,9 +157,10 @@ public class ServerHomeController extends Thread implements EventHandler {
 
 
     int posInServer(ClientInfo clientInfo){
+        // TODO: try comparing directly to clientinfo not ipaddress
         String ipAddress = clientInfo.getAddress().getText();
-        for (int i=0; i<clientData.size(); i++){
-            if (clientData.get(i).getAddress().getText().contains(ipAddress)){
+        for (int i = 0; i< clientsInfo.size(); i++){
+            if (clientsInfo.get(i).getAddress().getText().contains(ipAddress)){
                 return i;
             }
         }
@@ -150,13 +170,6 @@ public class ServerHomeController extends Thread implements EventHandler {
     @Override
     public void handle(Event event) {
         if (event.getSource() == powerBtn){     // close all sockets and then exit
-            for (BaccaratGame game: baccaratGames){
-                try {
-                    game.closeConnection();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
             for (BaccaratGame game: baccaratGames){
                 try {
                     game.closeConnection();

@@ -17,7 +17,7 @@ public class ClientInfo{
     private Label name = new Label("");
     private Label result = new Label("");
     private Label currentBid = new Label();
-    private Label wins = new Label("");
+    private Label totalWins = new Label("");
     private Label status = new Label("");
     private Label playing = new Label("");
     private ServerHomeController controller;
@@ -42,18 +42,19 @@ public class ClientInfo{
 
         final HBox currentBetLine = new HBox(new Label("Current bet: "));
         currentBetLine.getChildren().add(this.currentBid);
+        currentBetLine.setSpacing(100);
 
-        final HBox winLine = new HBox(new Label("Wins: "));
-        winLine.getChildren().add(this.wins);
+        final HBox winLine = new HBox(new Label("Total Wins: "));
+        winLine.getChildren().add(this.totalWins);
         winLine.setSpacing(100);
 
         final HBox statusLine = new HBox(new Label("Status: "));
         statusLine.getChildren().add(this.status);
         statusLine.setSpacing(100);
 
-        final HBox currentlyPlayingLine = new HBox(new Label("Wins: "));
-        currentBetLine.getChildren().add(this.playing);
-        currentBetLine.setSpacing(100);
+        final HBox currentlyPlayingLine = new HBox(new Label("Currently playing: "));
+        currentlyPlayingLine.getChildren().add(this.playing);
+        currentlyPlayingLine.setSpacing(100);
 
         container.setPadding(new Insets(0, 0, 20, 0));
         Platform.runLater(new Runnable() {
@@ -66,9 +67,16 @@ public class ClientInfo{
         notifyController();
     }
 
-    public void updateClient(Packet packet){
-        setCurrentBid(packet.getPlayerDetails().getBidAmount());
-        setStatus(packet.getPlayerDetails().isOnline());
+    public void updateClient(final Packet packet){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                setCurrentBid(packet.getPlayerDetails().getBidAmount());
+                setStatus(packet.getPlayerDetails().isOnline());
+                setPlaying(packet.getClientPlaying());
+                setStatus(packet.isServerStatus());
+            }
+        });
     }
 
     public Label getName() {
@@ -104,12 +112,12 @@ public class ClientInfo{
         notifyController();
     }
 
-    public Label getWins() {
-        return wins;
+    public Label getTotalWins() {
+        return totalWins;
     }
 
-    public void setWins(String winText) {
-        String prev = this.wins.getText();
+    public void setTotalWins(String winText) {
+        String prev = this.totalWins.getText();
         // don't prefix with comma, the first time
         if (!prev.equals("")){
             winText = this.result.getText()+", $"+winText;
@@ -133,15 +141,22 @@ public class ClientInfo{
             this.status.setTextFill(Color.INDIANRED);
         }
         System.out.println("set status called");
-//        notifyController();
+        notifyController();
     }
 
     public Label getPlaying() {
         return playing;
     }
 
-    public void setPlaying(String playingText) {
-        this.playing.setText(playingText);
+    public void setPlaying(int playCount) {
+        if (playCount<0){
+            this.playing.setText("Not Playing");
+            this.playing.setTextFill(Color.INDIANRED);
+        }
+        else {
+            this.playing.setText(String.valueOf(playCount));
+            this.playing.setTextFill(Color.BLACK);
+        }
         System.out.println("setPlaying called");
         notifyController();
     }

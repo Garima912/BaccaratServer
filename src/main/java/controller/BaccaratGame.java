@@ -24,22 +24,21 @@ public class BaccaratGame {
     private Socket clientSocket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private ServerHomeController controller;
     ClientInfo clientInfo;
     Card playerThirdCard;
     Packet packet;
 
-    public BaccaratGame(Socket clientSocket, ObjectInputStream in, ServerHomeController controller) throws IOException {
+    public BaccaratGame(Socket clientSocket, ClientInfo clientInfo, ObjectInputStream in, ObjectOutputStream out) throws IOException {
         // we have received bid amount and bet choice.
         // dealer distributes 2 cards each to banker and player
         theDealer = new BaccaratDealer();
         this.playerHand = theDealer.dealHand();
         this.bankerHand = theDealer.dealHand();
+        this.clientInfo = clientInfo;
 
         this.clientSocket = clientSocket;
-        this.controller = controller;
         this.in = in;
-        out = new ObjectOutputStream((this.clientSocket.getOutputStream()));
+        this.out = out;
         gameStart();
     }
 
@@ -75,7 +74,7 @@ public class BaccaratGame {
                 System.out.println("received a packet");
                 packet = (Packet) in.readObject();
                 if (packet.actionRequest.equals(Util.ACTION_REQUEST_DRAW)){     // client clicked draw
-                    //
+                    System.out.println("Client drew");
                     currentBet = packet.getPlayerDetails().getBidAmount();
                     clientBetChoice = packet.getPlayerDetails().getBetChoice();
                     if (BaccaratGameLogic.evaluatePlayerDraw(playerHand)) {  //check if player needs to draw 3rd card
@@ -91,10 +90,21 @@ public class BaccaratGame {
                     packet.getPlayerDetails().setBankerHand(bankerHand);
                     out.reset();
                     out.writeObject(packet);
+                    System.out.println("packet sent to client");
+                    System.out.println("size is "+packet.getPlayerDetails().getBankerHand().size());
 
 
                 }
-                out.reset();
+                else if (packet.actionRequest.equals(Util.ACTION_REQUEST_GAME_OVER)){
+                    // TODO: do clean up things like make client offline
+                    return;
+                }
+                else if (packet.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit
+                    packet.setServerStatus(false);
+                    clientInfo.updateClient(packet);
+                    out.reset();
+                    out.writeObject(packet);    // send packet back as is. With actionRequest being the same
+                }
             }
 
         } catch (IOException | ClassNotFoundException e) {
@@ -107,4 +117,5 @@ public class BaccaratGame {
         out.close();
         clientSocket.close();
     }
+
 }
