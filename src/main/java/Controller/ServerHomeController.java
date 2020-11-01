@@ -1,3 +1,5 @@
+package Controller;
+
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -23,7 +25,7 @@ public class ServerHomeController extends Thread implements EventHandler {
     Button powerBtn =  new Button();
     ListView clientsList;
     ServerSocket listener;
-    ArrayList<ClientInfo> clientData = new ArrayList<>();
+    ArrayList<ClientInfo> clientsInfo = new ArrayList<>();
     ArrayList<BaccaratGame> baccaratGames = new ArrayList<>();
 
     static ExecutorService executor = Executors.newFixedThreadPool(10);
@@ -44,7 +46,7 @@ public class ServerHomeController extends Thread implements EventHandler {
 
         HBox clientCountBox = new HBox();
         clientCountBox.getChildren().add(new Label("Number of clients: "));
-        clientCount.setText(String.valueOf(clientData.size()));
+        clientCount.setText(String.valueOf(clientsInfo.size()));
         clientCountBox.getChildren().add(clientCount);
 
         powerBtn.setText("Turn off Server");
@@ -64,7 +66,7 @@ public class ServerHomeController extends Thread implements EventHandler {
                 System.out.println("[SERVER]: Connected to client");
                 BaccaratGame baccaratGame = new BaccaratGame(clientSocket, this);
                 baccaratGames.add(baccaratGame);
-                executor.execute(baccaratGame);
+                executor.execute(baccaratGame.runnable);
                 System.out.println("DONE");
             }
         } catch (IOException e) {
@@ -78,19 +80,19 @@ public class ServerHomeController extends Thread implements EventHandler {
         int position = posInServer(clientInfo);
         if (position == -1){
             System.out.println("First time client: "+ clientInfo.getAddress());
-            clientData.add(clientInfo);
+            clientsInfo.add(clientInfo);
         }
         else{       // update clientInfo at that position
             System.out.println("existing client "+ clientInfo.getAddress());
-            clientData.set(position, clientInfo);
+            clientsInfo.set(position, clientInfo);
         }
         // platform.runLater enables syncing. since they're in different threads
         Platform.runLater(new Runnable() {
             @Override public void run() {
-                for (ClientInfo item: clientData){
+                for (ClientInfo item: clientsInfo){
                     clientsList.getItems().add(item.getContainer());
                 }
-                clientCount.setText(String.valueOf(clientData.size()));
+                clientCount.setText(String.valueOf(clientsInfo.size()));
             }
         });
     }
@@ -99,8 +101,8 @@ public class ServerHomeController extends Thread implements EventHandler {
 
     int posInServer(ClientInfo clientInfo){
         String ipAddress = clientInfo.getAddress().toString();
-        for (int i=0; i<clientData.size(); i++){
-            if (clientData.get(i).getAddress().toString().contains(ipAddress)){
+        for (int i = 0; i< clientsInfo.size(); i++){
+            if (clientsInfo.get(i).getAddress().toString().contains(ipAddress)){
                 return i;
             }
         }
@@ -116,6 +118,8 @@ public class ServerHomeController extends Thread implements EventHandler {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                // TODO: loop through all games close their sockets
+                executor.shutdownNow();
             }
             Platform.exit();
         }

@@ -4,16 +4,16 @@ import java.util.ArrayList;
 
 public class Packet implements Serializable {
 
-    private String name;
     private String ipAddress;
     private int portNum;
     private PlayerDetails playerDetails;
     private String winnerMsg;
 
+
     public Packet(String ipAddress, int portNum, String name) {
         this.ipAddress = ipAddress;
         this.portNum = portNum;
-        this.name = name;
+        this.playerDetails = new PlayerDetails(name);
     }
 
     public ArrayList<Card> giveHand(ArrayList<Card> hand){
@@ -28,38 +28,45 @@ public class Packet implements Serializable {
         return portNum;
     }
 
-    public String getName(){
-        return this.name;
-    }
-
-
     public PlayerDetails getPlayerDetails() {
         return playerDetails;
     }
 
-    public void setPlayerDetails(PlayerDetails playerDetails) {
-        this.playerDetails = playerDetails;
+
+
+    public String getWinnerMsg() {
+        return winnerMsg;
     }
 
-        /* Beginning of inner class */
-    public static class PlayerDetails {
+    public void setWinnerMsg(String winnerMsg) {
+        this.winnerMsg = winnerMsg;
+    }
 
-        private String playerType;
+
+//    enum GameResults
+//    {
+//        PLAYER, BANKER, TIE;
+//    }
+
+    /* Player details implementation */
+    public class PlayerDetails implements Serializable{
+        private String playerName;
         private ArrayList<Card> hand;
         private int bidAmount;
-        private GameResults betChoice;
+        private String betChoice;
+        private boolean isOnline;
 
-        enum GameResults
-        {
-            PLAYER, BANKER, DRAW;
+        public PlayerDetails(String playerName) {
+            this.playerName = playerName;
+            this.isOnline = true;
         }
 
-        public PlayerDetails(String playerType) {
-            this.playerType = playerType;
+        public String getPlayerName() {
+            return playerName;
         }
 
-        public String getPlayerType() {
-            return playerType;
+        public void setPlayerName(String playerName) {
+            this.playerName = playerName;
         }
 
         public ArrayList<Card> getHand() {
@@ -78,13 +85,22 @@ public class Packet implements Serializable {
             this.bidAmount = bidAmount;
         }
 
-        public GameResults getBetChoice() {
+        public String getBetChoice() {
             return betChoice;
         }
 
-        public void setBetChoice(GameResults betChoice) {
+        public void setBetChoice(String betChoice) {
             this.betChoice = betChoice;
         }
+
+        public boolean isOnline() {
+            return isOnline;
+        }
+
+        public void setOnline(boolean online) {
+            isOnline = online;
+        }
     }
+
 
 }
