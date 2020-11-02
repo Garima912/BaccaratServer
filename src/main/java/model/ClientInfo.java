@@ -25,7 +25,8 @@ public class ClientInfo{
     public ClientInfo(BaccaratInfo baccaratInfo, ServerHomeController controller) {
         this.controller = controller;
         this.name.setText(baccaratInfo.getPlayerDetails().getPlayerName());
-        this.address.setText(baccaratInfo.getIpAddress());
+
+        this.address.setText(baccaratInfo.getIpAddress().substring(1));
         this.updateClient(baccaratInfo);
 
         final HBox nameLine = new HBox(new Label("Name: "));
@@ -52,7 +53,7 @@ public class ClientInfo{
         statusLine.getChildren().add(this.status);
         statusLine.setSpacing(100);
 
-        final HBox currentlyPlayingLine = new HBox(new Label("Currently playing: "));
+        final HBox currentlyPlayingLine = new HBox(new Label("Games played: "));
         currentlyPlayingLine.getChildren().add(this.playing);
         currentlyPlayingLine.setSpacing(100);
 
@@ -73,8 +74,16 @@ public class ClientInfo{
             public void run() {
                 setCurrentBid(baccaratInfo.getPlayerDetails().getBidAmount());
                 setStatus(baccaratInfo.getPlayerDetails().isOnline());
-                setPlaying(baccaratInfo.getClientPlaying());
+//                setPlaying(packet.getClientPlaying());
                 setStatus(baccaratInfo.isServerStatus());
+                setTotalWins(String.valueOf(baccaratInfo.getPlayerDetails().getTotalWinnings()));
+                if (baccaratInfo.getWinnerMsg() == null || baccaratInfo.getWinnerMsg().equals("")){
+                    return;
+                }
+                if (baccaratInfo.getWinnerMsg().equals(baccaratInfo.getPlayerDetails().getBetChoice())){
+                    setResult("W");
+                }
+                else setResult("L");
             }
         });
     }
@@ -117,12 +126,7 @@ public class ClientInfo{
     }
 
     public void setTotalWins(String winText) {
-        String prev = this.totalWins.getText();
-        // don't prefix with comma, the first time
-        if (!prev.equals("")){
-            winText = this.result.getText()+", $"+winText;
-        }
-        this.result.setText("$"+winText);
+        this.totalWins.setText("$"+winText);
         System.out.println("set wins called");
         notifyController();
     }
@@ -148,17 +152,23 @@ public class ClientInfo{
         return playing;
     }
 
-    public void setPlaying(int playCount) {
-        if (playCount<0){
-            this.playing.setText("Not Playing");
-            this.playing.setTextFill(Color.INDIANRED);
-        }
-        else {
-            this.playing.setText(String.valueOf(playCount));
-            this.playing.setTextFill(Color.BLACK);
-        }
-        System.out.println("setPlaying called");
-        notifyController();
+    public void setPlaying(final int playCount) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (playCount<0){
+                    ClientInfo.this.playing.setText("Not Playing");
+                    ClientInfo.this.playing.setTextFill(Color.INDIANRED);
+                }
+                else {
+                    System.out.println("play count is "+playCount);
+                    ClientInfo.this.playing.setText(String.valueOf(playCount));
+                    ClientInfo.this.playing.setTextFill(Color.BLACK);
+                }
+                System.out.println("setPlaying called");
+                notifyController();
+            }
+        });
     }
 
     public VBox getContainer() {
@@ -168,6 +178,5 @@ public class ClientInfo{
 
     public void notifyController(){
         controller.updateListView(this);
-
     }
 }

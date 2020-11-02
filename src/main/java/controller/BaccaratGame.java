@@ -17,7 +17,6 @@ public class BaccaratGame {
     private double currentBet;
     private double totalWinnings;
     String clientBetChoice;
-    //String gameResult;
     String winner;
 
     private Socket clientSocket;
@@ -49,8 +48,7 @@ public class BaccaratGame {
     // this function checks if the user wins or loses and returns the total winning  accordingly
     public double evaluateWinnings(){
         winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
-        baccaratInfo.setWinnerMsg(winner);
-
+//        packet.setWinnerMsg(winner);
         if(winner.equals(clientBetChoice)){
 
             if(winner.equals("Player") || winner.equals("Tie")) {
@@ -87,19 +85,20 @@ public class BaccaratGame {
                         System.out.println("banker 3rd card: " + bankerHand.get(2).getValue());
                     }
 
-
-                    evaluateWinnings();  // evaluate the results and calculate the total winnings, after hands are updated
+                    double winValue = evaluateWinnings();  // evaluate the results and calculate the total winnings, after hands are updated
+                    double prevTotalWinnings = baccaratInfo.getPlayerDetails().getTotalWinnings();
+                    baccaratInfo.getPlayerDetails().setTotalWinnings(winValue+prevTotalWinnings);  // set total winnings
+                    baccaratInfo.setWinnerMsg(winner);        // set the winner
+                    clientInfo.updateClient(baccaratInfo);
                     baccaratInfo.getPlayerDetails().setPlayerHand(playerHand);
                     baccaratInfo.getPlayerDetails().setBankerHand(bankerHand);
                     out.reset();
                     out.writeObject(baccaratInfo);
                     System.out.println("packet sent to client");
                     System.out.println("size is "+ baccaratInfo.getPlayerDetails().getBankerHand().size());
-
-
                 }
-                else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_GAME_OVER)){
 
+                else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_GAME_OVER)){
                     return;
                 }
                 else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit

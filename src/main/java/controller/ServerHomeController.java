@@ -75,7 +75,8 @@ public class ServerHomeController extends Thread implements EventHandler {
                 in = new ObjectInputStream(clientSocket.getInputStream());
                 BaccaratInfo baccaratInfo = (BaccaratInfo) in.readObject();
                 if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_CONNECT)){
-                    ClientInfo clientInfo =  new ClientInfo(baccaratInfo, this);
+
+                   ClientInfo clientInfo =  new ClientInfo(baccaratInfo, this);
                     clientPlayPressed(clientSocket, clientInfo).start();
 
                 }
@@ -101,13 +102,13 @@ public class ServerHomeController extends Thread implements EventHandler {
                         // start a game for the client, add game to list of games
                         System.out.println("reading input...");
                         BaccaratInfo baccaratInfo = (BaccaratInfo) in.readObject();
+                        baccaratInfo.setWinnerMsg("");
                         if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_PLAY)){
                             System.out.println("amount trynna bet is "+ baccaratInfo.getPlayerDetails().getBidAmount());
 
-                            // update list view, client is now playing
                             baccaratInfo.setClientPlaying(playCount);
                             clientInfo.updateClient(baccaratInfo);
-
+                            clientInfo.setPlaying(playCount);
                             BaccaratGame baccaratGame = new BaccaratGame(clientSocket, clientInfo, in, out);
                             baccaratGames.add(baccaratGame);
                             runningThreads.add(this);

@@ -47,6 +47,7 @@ public class BaccaratGameLogic  {
         }
         return total;
     }
+
     public static boolean evaluateBankerDraw(ArrayList<Card> hand, Card playerCard){
 
         int bankerTotal = handTotal(hand);
