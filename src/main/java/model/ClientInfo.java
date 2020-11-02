@@ -25,6 +25,7 @@ public class ClientInfo{
     public ClientInfo(BaccaratInfo baccaratInfo, ServerHomeController controller) {
         this.controller = controller;
         this.name.setText(baccaratInfo.getPlayerDetails().getPlayerName());
+
         this.address.setText(baccaratInfo.getIpAddress().substring(1));
         this.updateClient(baccaratInfo);
 

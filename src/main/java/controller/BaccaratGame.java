@@ -17,7 +17,6 @@ public class BaccaratGame {
     private double currentBet;
     private double totalWinnings;
     String clientBetChoice;
-    String gameResult;
     String winner;
 
     private Socket clientSocket;
@@ -50,7 +49,6 @@ public class BaccaratGame {
     public double evaluateWinnings(){
         winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
 //        packet.setWinnerMsg(winner);
-
         if(winner.equals(clientBetChoice)){
 
             if(winner.equals("Player") || winner.equals("Tie")) {
@@ -72,18 +70,19 @@ public class BaccaratGame {
             while (true){
                 System.out.println("received a packet");
                 baccaratInfo = (BaccaratInfo) in.readObject();
-                baccaratInfo.setWinnerMsg("");    // clear the winner msg first
                 if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_DRAW)){     // client clicked draw
-                    System.out.println("Client drew, clientPlaying is "+ baccaratInfo.getClientPlaying());
+                    System.out.println("Client drew");
                     currentBet = baccaratInfo.getPlayerDetails().getBidAmount();
                     clientBetChoice = baccaratInfo.getPlayerDetails().getBetChoice();
                     if (BaccaratGameLogic.evaluatePlayerDraw(playerHand)) {  //check if player needs to draw 3rd card
                         playerThirdCard = theDealer.drawOne();
                         playerHand.add(playerThirdCard);
+                        System.out.println("player 3rd card: " + playerThirdCard.getValue());
                     }
                     if(BaccaratGameLogic.evaluateBankerDraw(bankerHand,playerThirdCard)){    //check if banker needs to draw 3rd card
                         Card bankerThirdCard = theDealer.drawOne();
                         bankerHand.add(bankerThirdCard);
+                        System.out.println("banker 3rd card: " + bankerHand.get(2).getValue());
                     }
 
                     double winValue = evaluateWinnings();  // evaluate the results and calculate the total winnings, after hands are updated
@@ -100,7 +99,6 @@ public class BaccaratGame {
                 }
 
                 else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_GAME_OVER)){
-                    // TODO: do clean up things like make client offline
                     return;
                 }
                 else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit

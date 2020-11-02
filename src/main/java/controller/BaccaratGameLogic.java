@@ -4,6 +4,7 @@ import model.Card;
 
 import java.util.ArrayList;
 
+
 public class BaccaratGameLogic  {
 
     ArrayList<Card> hand1 ;
@@ -57,7 +58,6 @@ public class BaccaratGameLogic  {
             else return false;
         }
         int playerVal = playerCard.getValue();
-
 
         if(bankerTotal >= 7){
             return false;
