@@ -101,12 +101,15 @@ public class ServerHomeController extends Thread implements EventHandler {
                         // start a game for the client, add game to list of games
                         System.out.println("reading input...");
                         Packet packet = (Packet) in.readObject();
+                        packet.setWinnerMsg("");
                         if (packet.actionRequest.equals(Util.ACTION_REQUEST_PLAY)){
                             System.out.println("amount trynna bet is "+packet.getPlayerDetails().getBidAmount());
 
                             // update list view, client is now playing
+                            // TODO: maybe remove clientPlaying
                             packet.setClientPlaying(playCount);
                             clientInfo.updateClient(packet);
+                            clientInfo.setPlaying(playCount);
 
                             BaccaratGame baccaratGame = new BaccaratGame(clientSocket, clientInfo, in, out);
                             baccaratGames.add(baccaratGame);

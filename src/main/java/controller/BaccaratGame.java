@@ -20,6 +20,7 @@ public class BaccaratGame {
     private double totalWinnings;
     String clientBetChoice;
     String gameResult;
+    String winner;
 
     private Socket clientSocket;
     private ObjectInputStream in;
@@ -49,8 +50,8 @@ public class BaccaratGame {
 
     // this function checks if the user wins or loses and returns the total winning  accordingly
     public double evaluateWinnings(){
-        String winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
-        packet.setWinnerMsg(winner);
+        winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
+//        packet.setWinnerMsg(winner);
 
         if(winner.equals(clientBetChoice)){
 
@@ -63,7 +64,7 @@ public class BaccaratGame {
             return totalWinnings;
         }
 
-        return currentBet;
+        return totalWinnings-= currentBet;
     }
 
 
@@ -73,8 +74,9 @@ public class BaccaratGame {
             while (true){
                 System.out.println("received a packet");
                 packet = (Packet) in.readObject();
+                packet.setWinnerMsg("");    // clear the winner msg first
                 if (packet.actionRequest.equals(Util.ACTION_REQUEST_DRAW)){     // client clicked draw
-                    System.out.println("Client drew");
+                    System.out.println("Client drew, clientPlaying is "+packet.getClientPlaying());
                     currentBet = packet.getPlayerDetails().getBidAmount();
                     clientBetChoice = packet.getPlayerDetails().getBetChoice();
                     if (BaccaratGameLogic.evaluatePlayerDraw(playerHand)) {  //check if player needs to draw 3rd card
@@ -85,16 +87,20 @@ public class BaccaratGame {
                         Card bankerThirdCard = theDealer.drawOne();
                         bankerHand.add(bankerThirdCard);
                     }
-                    evaluateWinnings();  // evaluate the results and calculate the total winnings, after hands are updated
+
+                    double winValue = evaluateWinnings();  // evaluate the results and calculate the total winnings, after hands are updated
+                    double prevTotalWinnings = packet.getPlayerDetails().getTotalWinnings();
+                    packet.getPlayerDetails().setTotalWinnings(winValue+prevTotalWinnings);  // set total winnings
+                    packet.setWinnerMsg(winner);        // set the winner
+                    clientInfo.updateClient(packet);
                     packet.getPlayerDetails().setPlayerHand(playerHand);
                     packet.getPlayerDetails().setBankerHand(bankerHand);
                     out.reset();
                     out.writeObject(packet);
                     System.out.println("packet sent to client");
                     System.out.println("size is "+packet.getPlayerDetails().getBankerHand().size());
-
-
                 }
+
                 else if (packet.actionRequest.equals(Util.ACTION_REQUEST_GAME_OVER)){
                     // TODO: do clean up things like make client offline
                     return;

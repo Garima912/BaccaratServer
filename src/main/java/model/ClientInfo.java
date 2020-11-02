@@ -73,8 +73,16 @@ public class ClientInfo{
             public void run() {
                 setCurrentBid(packet.getPlayerDetails().getBidAmount());
                 setStatus(packet.getPlayerDetails().isOnline());
-                setPlaying(packet.getClientPlaying());
+//                setPlaying(packet.getClientPlaying());
                 setStatus(packet.isServerStatus());
+                setTotalWins(String.valueOf(packet.getPlayerDetails().getTotalWinnings()));
+                if (packet.getWinnerMsg() == null || packet.getWinnerMsg().equals("")){
+                    return;
+                }
+                if (packet.getWinnerMsg().equals(packet.getPlayerDetails().getBetChoice())){
+                    setResult("W");
+                }
+                else setResult("L");
             }
         });
     }
@@ -117,12 +125,7 @@ public class ClientInfo{
     }
 
     public void setTotalWins(String winText) {
-        String prev = this.totalWins.getText();
-        // don't prefix with comma, the first time
-        if (!prev.equals("")){
-            winText = this.result.getText()+", $"+winText;
-        }
-        this.result.setText("$"+winText);
+        this.totalWins.setText("$"+winText);
         System.out.println("set wins called");
         notifyController();
     }
@@ -148,17 +151,23 @@ public class ClientInfo{
         return playing;
     }
 
-    public void setPlaying(int playCount) {
-        if (playCount<0){
-            this.playing.setText("Not Playing");
-            this.playing.setTextFill(Color.INDIANRED);
-        }
-        else {
-            this.playing.setText(String.valueOf(playCount));
-            this.playing.setTextFill(Color.BLACK);
-        }
-        System.out.println("setPlaying called");
-        notifyController();
+    public void setPlaying(final int playCount) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (playCount<0){
+                    ClientInfo.this.playing.setText("Not Playing");
+                    ClientInfo.this.playing.setTextFill(Color.INDIANRED);
+                }
+                else {
+                    System.out.println("play count is "+playCount);
+                    ClientInfo.this.playing.setText(String.valueOf(playCount));
+                    ClientInfo.this.playing.setTextFill(Color.BLACK);
+                }
+                System.out.println("setPlaying called");
+                notifyController();
+            }
+        });
     }
 
     public VBox getContainer() {
@@ -168,11 +177,5 @@ public class ClientInfo{
 
     public void notifyController(){
         controller.updateListView(this);
-//        Platform.runLater(new Runnable() {
-//            @Override
-//            public void run() {
-//                controller.updateListView(ClientInfo.this);
-//            }
-//        });
     }
 }
