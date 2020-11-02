@@ -1,16 +1,15 @@
 package controller;
 
-import controller.ServerHomeController;
-import javafx.application.Platform;
 import model.Card;
 import model.ClientInfo;
-import model.Packet;
+import model.BaccaratInfo;
+import util.Util;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class BaccaratGame implements Runnable {
+public class BaccaratGame {
 
     private ArrayList<Card> playerHand;
     private ArrayList<Card> bankerHand;
@@ -19,36 +18,27 @@ public class BaccaratGame implements Runnable {
     private double totalWinnings;
     String clientBetChoice;
     String gameResult;
+    String winner;
 
     private Socket clientSocket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private ServerHomeController controller;
     ClientInfo clientInfo;
     Card playerThirdCard;
-    Packet packet;
+    BaccaratInfo baccaratInfo;
 
-    public BaccaratGame(Socket clientSocket, ServerHomeController controller) throws IOException {
-
-        //dealer distributes 2 cards each to banker and player
+    public BaccaratGame(Socket clientSocket, ClientInfo clientInfo, ObjectInputStream in, ObjectOutputStream out) throws IOException {
+        // we have received bid amount and bet choice.
+        // dealer distributes 2 cards each to banker and player
         theDealer = new BaccaratDealer();
         this.playerHand = theDealer.dealHand();
         this.bankerHand = theDealer.dealHand();
-
-        if (BaccaratGameLogic.evaluatePlayerDraw(playerHand)) {  //check if player needs to draw 3rd card
-            playerThirdCard = theDealer.drawOne();
-            playerHand.add(playerThirdCard);
-        }
-        if(BaccaratGameLogic.evaluateBankerDraw(bankerHand,playerThirdCard)){    //check if banker needs to draw 3rd card
-            Card bankerThirdCard = theDealer.drawOne();
-            bankerHand.add(bankerThirdCard);
-        }
-        evaluateWinnings();  // evaluate the results and calculate the total winnings, after hands are updated
+        this.clientInfo = clientInfo;
 
         this.clientSocket = clientSocket;
-        this.controller = controller;
-        in = new ObjectInputStream(this.clientSocket.getInputStream());
-        out = new ObjectOutputStream((this.clientSocket.getOutputStream()));
+        this.in = in;
+        this.out = out;
+        gameStart();
     }
 
     public Socket getSocket() {
@@ -56,17 +46,10 @@ public class BaccaratGame implements Runnable {
         return clientSocket;
     }
 
-    public void closeConnection() throws IOException {
-        in.close();
-        out.close();
-        clientSocket.close();
-
-    }
-
     // this function checks if the user wins or loses and returns the total winning  accordingly
     public double evaluateWinnings(){
-        String winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
-        packet.setWinnerMsg(winner);
+        winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
+//        packet.setWinnerMsg(winner);
 
         if(winner.equals(clientBetChoice)){
 
@@ -79,36 +62,64 @@ public class BaccaratGame implements Runnable {
             return totalWinnings;
         }
 
-        return currentBet;
+        return totalWinnings-= currentBet;
     }
 
-    @Override
-    public void run() {
+
+    public void gameStart(){
         System.out.println("[BACCARAT_GAME]: Game started, player -> ");
         try {
             while (true){
                 System.out.println("received a packet");
-                // regardless of what button is pressed on client side, update server UI first
-                packet = (Packet) in.readObject();
-                clientInfo = new ClientInfo(packet, controller);
+                baccaratInfo = (BaccaratInfo) in.readObject();
+                baccaratInfo.setWinnerMsg("");    // clear the winner msg first
+                if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_DRAW)){     // client clicked draw
+                    System.out.println("Client drew, clientPlaying is "+ baccaratInfo.getClientPlaying());
+                    currentBet = baccaratInfo.getPlayerDetails().getBidAmount();
+                    clientBetChoice = baccaratInfo.getPlayerDetails().getBetChoice();
+                    if (BaccaratGameLogic.evaluatePlayerDraw(playerHand)) {  //check if player needs to draw 3rd card
+                        playerThirdCard = theDealer.drawOne();
+                        playerHand.add(playerThirdCard);
+                    }
+                    if(BaccaratGameLogic.evaluateBankerDraw(bankerHand,playerThirdCard)){    //check if banker needs to draw 3rd card
+                        Card bankerThirdCard = theDealer.drawOne();
+                        bankerHand.add(bankerThirdCard);
+                    }
 
-                if (packet.getPlayerDetails().getBidAmount() !=0){      // draw button is pressed by client
-
-                    // TODO: REMOVE hardcode to send hand to client
-                    Card card_1 = new Card("diamond", 3);
-                    Card card_2 = new Card("heart", 4);
-                    ArrayList<Card> cards = new ArrayList<>();
-                    cards.add(card_1); cards.add(card_2);
-                    packet.getPlayerDetails().setPlayerHand(cards);
-                    out.writeObject(packet);
-                    // TODO: end hardcode to send hand to client
-
+                    double winValue = evaluateWinnings();  // evaluate the results and calculate the total winnings, after hands are updated
+                    double prevTotalWinnings = baccaratInfo.getPlayerDetails().getTotalWinnings();
+                    baccaratInfo.getPlayerDetails().setTotalWinnings(winValue+prevTotalWinnings);  // set total winnings
+                    baccaratInfo.setWinnerMsg(winner);        // set the winner
+                    clientInfo.updateClient(baccaratInfo);
+                    baccaratInfo.getPlayerDetails().setPlayerHand(playerHand);
+                    baccaratInfo.getPlayerDetails().setBankerHand(bankerHand);
+                    out.reset();
+                    out.writeObject(baccaratInfo);
+                    System.out.println("packet sent to client");
+                    System.out.println("size is "+ baccaratInfo.getPlayerDetails().getBankerHand().size());
                 }
-                out.reset();
+
+                else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_GAME_OVER)){
+                    // TODO: do clean up things like make client offline
+                    return;
+                }
+                else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit
+                    baccaratInfo.setServerStatus(false);
+                    clientInfo.updateClient(baccaratInfo);
+                    out.reset();
+                    out.writeObject(baccaratInfo);    // send packet back as is. With actionRequest being the same
+                }
             }
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
+
+    public void closeConnection() throws IOException {
+        in.close();
+        out.close();
+        clientSocket.close();
+    }
+
 }

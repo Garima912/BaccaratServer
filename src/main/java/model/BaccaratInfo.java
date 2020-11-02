@@ -1,25 +1,34 @@
 package model;
-
-import controller.BaccaratGameLogic;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Packet implements Serializable {
+public class BaccaratInfo implements Serializable {
 
     private String ipAddress;
     private int portNum;
     private PlayerDetails playerDetails;
     private String winnerMsg;
-    private boolean serverStatus;
+    private boolean serverStatus;       // if server is down or not
+    private int clientPlaying;
+    public String actionRequest;        // the action the client is requesting from server
 
-
-    public Packet(String ipAddress, int portNum, String name) {
+    public BaccaratInfo(String ipAddress, int portNum, String name) {
         this.ipAddress = ipAddress;
         this.portNum = portNum;
         this.playerDetails = new PlayerDetails(name);
         this.serverStatus = true;
+        this.clientPlaying = 0;     // the number of games client has played
     }
+
+
+    public int getClientPlaying() {
+        return clientPlaying;
+    }
+
+    public void setClientPlaying(int clientPlaying) {
+        this.clientPlaying = clientPlaying;
+    }
+
 
     public boolean isServerStatus() {
         return serverStatus;
@@ -63,7 +72,6 @@ public class Packet implements Serializable {
         private int bidAmount;
         private String betChoice;
         private boolean isOnline;
-        private double totalWinnings;
 
         public double getTotalWinnings() {
             return totalWinnings;
@@ -72,6 +80,8 @@ public class Packet implements Serializable {
         public void setTotalWinnings(double totalWinnings) {
             this.totalWinnings = totalWinnings;
         }
+
+        private double totalWinnings;
 
         public PlayerDetails(String playerName) {
             this.playerName = playerName;
@@ -125,6 +135,7 @@ public class Packet implements Serializable {
         public void setOnline(boolean online) {
             this.isOnline = online;
         }
+
         public int getHandTotal(ArrayList<Card> hand){
             int total = 0;
 

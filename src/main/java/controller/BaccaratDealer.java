@@ -9,8 +9,8 @@ import java.util.Random;
 
 public class BaccaratDealer {
 
-    ArrayList<Card> deck;
-    ArrayList<String> deckSuite = new ArrayList<>(Arrays.asList("HEARTS", "SPADES","DIAMONDS","CLUBS"));
+    public ArrayList<Card> deck;
+    public ArrayList<String> deckSuite = new ArrayList<>(Arrays.asList("HEARTS", "SPADES","DIAMONDS","CLUBS"));
 
 
     public BaccaratDealer() {
@@ -30,6 +30,7 @@ public class BaccaratDealer {
 
             }
         }
+        System.out.println("Generated a new deck");
 
     }
     public ArrayList<Card> dealHand(){
