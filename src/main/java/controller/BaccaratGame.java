@@ -1,10 +1,8 @@
 package controller;
 
-import controller.ServerHomeController;
-import javafx.application.Platform;
 import model.Card;
 import model.ClientInfo;
-import model.Packet;
+import model.BaccaratInfo;
 import util.Util;
 
 import java.io.*;
@@ -19,14 +17,15 @@ public class BaccaratGame {
     private double currentBet;
     private double totalWinnings;
     String clientBetChoice;
-    String gameResult;
+    //String gameResult;
+    String winner;
 
     private Socket clientSocket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     ClientInfo clientInfo;
     Card playerThirdCard;
-    Packet packet;
+    BaccaratInfo baccaratInfo;
 
     public BaccaratGame(Socket clientSocket, ClientInfo clientInfo, ObjectInputStream in, ObjectOutputStream out) throws IOException {
         // we have received bid amount and bet choice.
@@ -49,8 +48,8 @@ public class BaccaratGame {
 
     // this function checks if the user wins or loses and returns the total winning  accordingly
     public double evaluateWinnings(){
-        String winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
-        packet.setWinnerMsg(winner);
+        winner = BaccaratGameLogic.whoWon(playerHand,bankerHand);
+        baccaratInfo.setWinnerMsg(winner);
 
         if(winner.equals(clientBetChoice)){
 
@@ -63,7 +62,7 @@ public class BaccaratGame {
             return totalWinnings;
         }
 
-        return currentBet;
+        return totalWinnings-= currentBet;
     }
 
 
@@ -72,38 +71,42 @@ public class BaccaratGame {
         try {
             while (true){
                 System.out.println("received a packet");
-                packet = (Packet) in.readObject();
-                if (packet.actionRequest.equals(Util.ACTION_REQUEST_DRAW)){     // client clicked draw
+                baccaratInfo = (BaccaratInfo) in.readObject();
+                if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_DRAW)){     // client clicked draw
                     System.out.println("Client drew");
-                    currentBet = packet.getPlayerDetails().getBidAmount();
-                    clientBetChoice = packet.getPlayerDetails().getBetChoice();
+                    currentBet = baccaratInfo.getPlayerDetails().getBidAmount();
+                    clientBetChoice = baccaratInfo.getPlayerDetails().getBetChoice();
                     if (BaccaratGameLogic.evaluatePlayerDraw(playerHand)) {  //check if player needs to draw 3rd card
                         playerThirdCard = theDealer.drawOne();
                         playerHand.add(playerThirdCard);
+                        System.out.println("player 3rd card: " + playerThirdCard.getValue());
                     }
                     if(BaccaratGameLogic.evaluateBankerDraw(bankerHand,playerThirdCard)){    //check if banker needs to draw 3rd card
                         Card bankerThirdCard = theDealer.drawOne();
                         bankerHand.add(bankerThirdCard);
+                        System.out.println("banker 3rd card: " + bankerHand.get(2).getValue());
                     }
+
+
                     evaluateWinnings();  // evaluate the results and calculate the total winnings, after hands are updated
-                    packet.getPlayerDetails().setPlayerHand(playerHand);
-                    packet.getPlayerDetails().setBankerHand(bankerHand);
+                    baccaratInfo.getPlayerDetails().setPlayerHand(playerHand);
+                    baccaratInfo.getPlayerDetails().setBankerHand(bankerHand);
                     out.reset();
-                    out.writeObject(packet);
+                    out.writeObject(baccaratInfo);
                     System.out.println("packet sent to client");
-                    System.out.println("size is "+packet.getPlayerDetails().getBankerHand().size());
+                    System.out.println("size is "+ baccaratInfo.getPlayerDetails().getBankerHand().size());
 
 
                 }
-                else if (packet.actionRequest.equals(Util.ACTION_REQUEST_GAME_OVER)){
-                    // TODO: do clean up things like make client offline
+                else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_GAME_OVER)){
+
                     return;
                 }
-                else if (packet.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit
-                    packet.setServerStatus(false);
-                    clientInfo.updateClient(packet);
+                else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit
+                    baccaratInfo.setServerStatus(false);
+                    clientInfo.updateClient(baccaratInfo);
                     out.reset();
-                    out.writeObject(packet);    // send packet back as is. With actionRequest being the same
+                    out.writeObject(baccaratInfo);    // send packet back as is. With actionRequest being the same
                 }
             }
 

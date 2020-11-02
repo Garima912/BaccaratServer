@@ -22,11 +22,11 @@ public class ClientInfo{
     private Label playing = new Label("");
     private ServerHomeController controller;
 
-    public ClientInfo(Packet packet, ServerHomeController controller) {
+    public ClientInfo(BaccaratInfo baccaratInfo, ServerHomeController controller) {
         this.controller = controller;
-        this.name.setText(packet.getPlayerDetails().getPlayerName());
-        this.address.setText(packet.getIpAddress());
-        this.updateClient(packet);
+        this.name.setText(baccaratInfo.getPlayerDetails().getPlayerName());
+        this.address.setText(baccaratInfo.getIpAddress());
+        this.updateClient(baccaratInfo);
 
         final HBox nameLine = new HBox(new Label("Name: "));
         nameLine.setSpacing(100);
@@ -67,14 +67,14 @@ public class ClientInfo{
         notifyController();
     }
 
-    public void updateClient(final Packet packet){
+    public void updateClient(final BaccaratInfo baccaratInfo){
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                setCurrentBid(packet.getPlayerDetails().getBidAmount());
-                setStatus(packet.getPlayerDetails().isOnline());
-                setPlaying(packet.getClientPlaying());
-                setStatus(packet.isServerStatus());
+                setCurrentBid(baccaratInfo.getPlayerDetails().getBidAmount());
+                setStatus(baccaratInfo.getPlayerDetails().isOnline());
+                setPlaying(baccaratInfo.getClientPlaying());
+                setStatus(baccaratInfo.isServerStatus());
             }
         });
     }
@@ -168,11 +168,6 @@ public class ClientInfo{
 
     public void notifyController(){
         controller.updateListView(this);
-//        Platform.runLater(new Runnable() {
-//            @Override
-//            public void run() {
-//                controller.updateListView(ClientInfo.this);
-//            }
-//        });
+
     }
 }
