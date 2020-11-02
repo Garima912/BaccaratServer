@@ -10,7 +10,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import model.ClientInfo;
-import model.Packet;
+import model.BaccaratInfo;
 import util.Util;
 
 import java.io.IOException;
@@ -73,9 +73,9 @@ public class ServerHomeController extends Thread implements EventHandler {
 
                 // get packet from client send to client info for ui updates
                 in = new ObjectInputStream(clientSocket.getInputStream());
-                Packet packet = (Packet) in.readObject();
-                if (packet.actionRequest.equals(Util.ACTION_REQUEST_CONNECT)){
-                   ClientInfo clientInfo =  new ClientInfo(packet, this);
+                BaccaratInfo baccaratInfo = (BaccaratInfo) in.readObject();
+                if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_CONNECT)){
+                   ClientInfo clientInfo =  new ClientInfo(baccaratInfo, this);
                     clientPlayPressed(clientSocket, clientInfo).start();
 
                 }
@@ -100,15 +100,15 @@ public class ServerHomeController extends Thread implements EventHandler {
                         playCount ++;
                         // start a game for the client, add game to list of games
                         System.out.println("reading input...");
-                        Packet packet = (Packet) in.readObject();
-                        packet.setWinnerMsg("");
-                        if (packet.actionRequest.equals(Util.ACTION_REQUEST_PLAY)){
-                            System.out.println("amount trynna bet is "+packet.getPlayerDetails().getBidAmount());
+                        BaccaratInfo baccaratInfo = (BaccaratInfo) in.readObject();
+                        baccaratInfo.setWinnerMsg("");
+                        if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_PLAY)){
+                            System.out.println("amount trynna bet is "+ baccaratInfo.getPlayerDetails().getBidAmount());
 
                             // update list view, client is now playing
                             // TODO: maybe remove clientPlaying
-                            packet.setClientPlaying(playCount);
-                            clientInfo.updateClient(packet);
+                            baccaratInfo.setClientPlaying(playCount);
+                            clientInfo.updateClient(baccaratInfo);
                             clientInfo.setPlaying(playCount);
 
                             BaccaratGame baccaratGame = new BaccaratGame(clientSocket, clientInfo, in, out);
@@ -116,11 +116,11 @@ public class ServerHomeController extends Thread implements EventHandler {
                             runningThreads.add(this);
                             System.out.println("DONE");
                         }
-                        else if (packet.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit
-                            packet.setServerStatus(false);
-                            clientInfo.updateClient(packet);
+                        else if (baccaratInfo.actionRequest.equals(Util.ACTION_REQUEST_QUIT)){    // client presses quit
+                            baccaratInfo.setServerStatus(false);
+                            clientInfo.updateClient(baccaratInfo);
                             out.reset();
-                            out.writeObject(packet);    // send packet back as is. With actionRequest being the same
+                            out.writeObject(baccaratInfo);    // send packet back as is. With actionRequest being the same
                         }
                     }
                 } catch (IOException | ClassNotFoundException e) {

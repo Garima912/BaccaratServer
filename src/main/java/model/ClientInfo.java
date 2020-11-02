@@ -22,11 +22,11 @@ public class ClientInfo{
     private Label playing = new Label("");
     private ServerHomeController controller;
 
-    public ClientInfo(Packet packet, ServerHomeController controller) {
+    public ClientInfo(BaccaratInfo baccaratInfo, ServerHomeController controller) {
         this.controller = controller;
-        this.name.setText(packet.getPlayerDetails().getPlayerName());
-        this.address.setText(packet.getIpAddress());
-        this.updateClient(packet);
+        this.name.setText(baccaratInfo.getPlayerDetails().getPlayerName());
+        this.address.setText(baccaratInfo.getIpAddress().substring(1));
+        this.updateClient(baccaratInfo);
 
         final HBox nameLine = new HBox(new Label("Name: "));
         nameLine.setSpacing(100);
@@ -52,7 +52,7 @@ public class ClientInfo{
         statusLine.getChildren().add(this.status);
         statusLine.setSpacing(100);
 
-        final HBox currentlyPlayingLine = new HBox(new Label("Currently playing: "));
+        final HBox currentlyPlayingLine = new HBox(new Label("Games played: "));
         currentlyPlayingLine.getChildren().add(this.playing);
         currentlyPlayingLine.setSpacing(100);
 
@@ -67,19 +67,19 @@ public class ClientInfo{
         notifyController();
     }
 
-    public void updateClient(final Packet packet){
+    public void updateClient(final BaccaratInfo baccaratInfo){
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                setCurrentBid(packet.getPlayerDetails().getBidAmount());
-                setStatus(packet.getPlayerDetails().isOnline());
+                setCurrentBid(baccaratInfo.getPlayerDetails().getBidAmount());
+                setStatus(baccaratInfo.getPlayerDetails().isOnline());
 //                setPlaying(packet.getClientPlaying());
-                setStatus(packet.isServerStatus());
-                setTotalWins(String.valueOf(packet.getPlayerDetails().getTotalWinnings()));
-                if (packet.getWinnerMsg() == null || packet.getWinnerMsg().equals("")){
+                setStatus(baccaratInfo.isServerStatus());
+                setTotalWins(String.valueOf(baccaratInfo.getPlayerDetails().getTotalWinnings()));
+                if (baccaratInfo.getWinnerMsg() == null || baccaratInfo.getWinnerMsg().equals("")){
                     return;
                 }
-                if (packet.getWinnerMsg().equals(packet.getPlayerDetails().getBetChoice())){
+                if (baccaratInfo.getWinnerMsg().equals(baccaratInfo.getPlayerDetails().getBetChoice())){
                     setResult("W");
                 }
                 else setResult("L");

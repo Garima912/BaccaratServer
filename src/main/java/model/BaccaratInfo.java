@@ -2,7 +2,7 @@ package model;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Packet implements Serializable {
+public class BaccaratInfo implements Serializable {
 
     private String ipAddress;
     private int portNum;
@@ -12,7 +12,7 @@ public class Packet implements Serializable {
     private int clientPlaying;
     public String actionRequest;        // the action the client is requesting from server
 
-    public Packet(String ipAddress, int portNum, String name) {
+    public BaccaratInfo(String ipAddress, int portNum, String name) {
         this.ipAddress = ipAddress;
         this.portNum = portNum;
         this.playerDetails = new PlayerDetails(name);
